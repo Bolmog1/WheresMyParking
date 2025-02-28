@@ -1,0 +1,28 @@
+Identifiant;Nom;Adresse;Ville;État;Places disponibles;Capacité max;Date de mise à jour;Affichage panneaux
+TCG0001;Parking Hotel de Ville;Rue de la Bienfaisance;Tourcoing;OUVERT;185;434;2021-02-12 08:36:00+01:00;185
+TCG0002;Parking Miss Cavell;Avenue Allende;Tourcoing;ABONNES;150;273;2021-02-12 08:36:00+01:00;ABONNES
+LIL0002;Parking Plaza;Rue Nationale;Lille;OUVERT;140;300;2021-02-12 08:36:00+01:00;140
+TCG0003;Parking St Christophe;Rue des Anges;Tourcoing;OUVERT;604;757;2021-02-12 08:36:00+01:00;604
+RBX0001;Parking CHURCHILL;Rue du president Vincent Auriol;Roubaix;OUVERT;421;487;2021-02-12 08:36:00+01:00;420
+LIL0005;Parking Gare Lille Flandres;Rue de Tournai;Lille;OUVERT;174;376;2021-02-12 08:36:00+01:00;170
+LIL0003;Parking Les Tanneurs;Rue du Molinel;Lille;OUVERT;275;520;2021-02-12 08:36:00+01:00;275
+LIL0001;Parking Republique;Place de la Republique;Lille;OUVERT;183;203;2021-02-12 08:36:00+01:00;180
+LIL0008;Parking Gare Lille Europe;Avenue de Cologne;Lille;OUVERT;494;450;2021-02-12 08:36:00+01:00;490
+LIL0006;Parking Euralille;164 Avenue Willy Brandt;Lille;OUVERT;2200;2500;2021-02-12 08:36:00+01:00;2200
+LIL0004;Parking Grand Palais;Boulevard des Citees Unies;Lille;OUVERT;928;1219;2021-02-12 08:36:00+01:00;925
+LIL0013;Parking Bethune-Lafayette;6 rue de la Riviere;Lille;FERME;0;595;2021-02-12 08:36:00+01:00;FERME
+LIL0007;Parking Tours;Boulevard de Turin;Lille;OUVERT;122;250;2021-02-12 08:36:00+01:00;120
+LIL0009;Parking Opera;Avenue Carnot;Lille;OUVERT;361;433;2021-02-12 08:36:00+01:00;360
+LIL0015;Parking Liberte;Facade de l'Esplanade;Lille;OUVERT;388;525;2021-02-12 08:36:00+01:00;385
+VAQ0002;Parking 4CANTONS;Avenue Pointcare;Villeneuve d'Ascq;OUVERT;1923;2000;2021-02-12 08:36:00+01:00;1920
+LIL0010;Parking Vieux Lille;Avenue du Peuple Belge;Lille;OUVERT;169;245;2021-02-12 08:36:00+01:00;165
+RBX0003;Parking Mac Arthur Glen (Gambetta);Rue Charles Watteeuw;Roubaix;OUVERT;631;878;2021-02-12 08:36:00+01:00;520
+LIL0016;Parking Petit Paradis;Facade Esplanade;Lille;OUVERT;208;293;2021-02-12 08:36:00+01:00;205
+LIL0011;Parking Grand Place;Place du General de Gaulle;Lille;OUVERT;24;342;2021-02-12 08:36:00+01:00;20
+RBX0005;Parking LA POSTE;Rue de la Halle;Roubaix;OUVERT;7;75;2021-02-12 08:36:00+01:00;5
+LIL0012;Parking Rihour-Printemps;Place Rihour;Lille;OUVERT;291;300;2021-02-12 08:36:00+01:00;290
+LIL0014;Parking Nouveau Siecle;19 place Mendes France;Lille;OUVERT;546;940;2021-02-12 08:36:00+01:00;545
+VAQ0003;Parking LESPRES;Boulevard de l'Ouest;Villeneuve d'Ascq;.;0;1000;2021-02-12 08:36:00+01:00;.
+VAQ0001;Parking TRIOLO;Avenue Paul Langevin;Villeneuve d'Ascq;FERME;0;1400;2021-02-12 08:36:00+01:00;FERME
+RBX0006;Parking GRAND RUE;Avenue des Nations Unies;Roubaix;OUVERT;230;1300;2021-02-12 08:36:00+01:00;230
+RBX0007;Parking CENTRE;Rue Neuve;Roubaix;COMPLET;2;85;2021-02-12 08:36:00+01:00;COMPLET
