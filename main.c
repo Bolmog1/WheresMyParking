@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ncurses.h>
 
 #define PARKING_CSV "parking-metropole.csv"
 
@@ -37,7 +36,18 @@ void load_parking(FILE *fptr, struct parking *parkings, int nb_of_rows) {
 	for (int i = 0; i < nb_of_rows; ++i) {
 		char ligne[250];
 		fgets(ligne, 250, fptr);
-		printf("%s\n", ligne);
+		struct parking parking_temp;
+		struct parking parking_traite;
+		strcpy(parking_traite.id, strtok(ligne, ";"));
+		strcpy(parking_traite.nom, strtok(NULL, ";"));
+		strcpy(parking_traite.adresse, strtok(NULL, ";"));
+		strcpy(parking_traite.ville, strtok(NULL, ";"));
+		strcpy(parking_traite.etat, strtok(NULL, ";"));
+		parking_traite.place_dispo = atoi(strtok(NULL, ";"));
+		parking_traite.capacite_max = atoi(strtok(NULL, ";"));
+		strcpy(parking_traite.date_maj, strtok(NULL, ";"));
+		strcpy(parking_traite.affichage, strtok(NULL, ";"));
+		parkings[i] = parking_traite;
 	}
 }
 
@@ -51,5 +61,6 @@ int main(int argc, char const *argv[]) {
 		exit(1);
 	}
 	load_parking(fptr, parkings, nb_of_rows);
+	printf("%s\n", parkings[0].nom);
 	return 0;
 }
