@@ -5,8 +5,10 @@
 
 #define PARKING_CSV "parking-metropole.csv"
 
-#define WIN_WIDTH 40
-#define WIN_HEIGHT 10
+#define WIN_WIDTH_CREDIT 40
+#define WIN_HEIGHT_CREDIT 10
+#define WIN_WIDTH_MENU 60
+#define WIN_HEIGHT_MENU 30
 
 struct parking {
 	char id[8];
@@ -73,11 +75,11 @@ struct parking *lesparkings() {
 
 void draw_shadow(WINDOW *win, int starty, int startx) {
     int i;
-    for (i = 1; i <= WIN_HEIGHT; i++) {
-        mvprintw(starty + i, startx + WIN_WIDTH, " ");
+    for (i = 1; i <= WIN_HEIGHT_CREDIT; i++) {
+        mvprintw(starty + i, startx + WIN_WIDTH_CREDIT, " ");
     }
-    for (i = 1; i <= WIN_WIDTH; i++) {
-        mvprintw(starty + WIN_HEIGHT, startx + i, " ");
+    for (i = 1; i <= WIN_WIDTH_CREDIT; i++) {
+        mvprintw(starty + WIN_HEIGHT_CREDIT, startx + i, " ");
     }
 }
 
@@ -100,14 +102,18 @@ void initncurses() {
     refresh();  // Ajout de refresh pour afficher les modifications
 }
 
+void cprint(WINDOW *win, int line, char text[]) {
+	mvwprintw(win, line, (getmaxx(win) - strlen(text)) / 2, text);
+}
+
 void affichecredit(int state) {
     // Définition de l'arrière-plan bleu
     bkgd(COLOR_PAIR(1));
     clear();
 
     // Coordonnées de la fenêtre
-    int starty = (LINES - WIN_HEIGHT) / 2;
-    int startx = (COLS - WIN_WIDTH) / 2;
+    int starty = (LINES - WIN_HEIGHT_CREDIT) / 2;
+    int startx = (COLS - WIN_WIDTH_CREDIT) / 2;
 
     // Dessiner l'ombre
     attron(COLOR_PAIR(2));
@@ -115,29 +121,53 @@ void affichecredit(int state) {
     attroff(COLOR_PAIR(2));
 
     // Créer la fenêtre principale (grise)
-    WINDOW *win = newwin(WIN_HEIGHT, WIN_WIDTH, starty, startx);
+    WINDOW *win = newwin(WIN_HEIGHT_CREDIT, WIN_WIDTH_CREDIT, starty, startx);
     wbkgd(win, COLOR_PAIR(3));
     box(win, ACS_VLINE, ACS_HLINE);
-    mvwprintw(win, 0, (WIN_WIDTH - 21) / 2, "Wheres My Parking");
+    cprint(win, 0, "Wheres My Parking");
     wattron(win, COLOR_PAIR(4));
-    mvwprintw(win, 2, (WIN_WIDTH - 14) / 2, "Developper par");
+    cprint(win, 2, "Developper par");
     wattroff(win, COLOR_PAIR(4));
     wattron(win, A_BOLD);
-    mvwprintw(win, 3, (WIN_WIDTH - 34) / 2, "Eliot MIDAVAINE & Simon DEFONTAINE");
+    cprint(win, 3, "Eliot MIDAVAINE & Simon DEFONTAINE");
     wattroff(win, A_BOLD);  // Ajout de attroff pour désactiver le mode gras
     if (state) {
-    	mvwprintw(win, 5, (WIN_WIDTH - 16) / 2, "Fichier charge !");
+    	cprint(win, 5, "Fichier charge !");
     	wattron(win, A_BLINK);
-		mvwprintw(win, 7, (WIN_WIDTH - 34) / 2, "Appuyez sur entrer pour continuer");
+		cprint(win, 7, "Appuyez sur entrer pour continuer");
     	wattroff(win, A_BLINK);
     } else {
-    	mvwprintw(win, 5, (WIN_WIDTH - 24) / 2, "Chargement du fichier...");
+    	cprint(win, 5, "Chargement du fichier...");
     }
     refresh();  // Ajout de refresh pour afficher les modifications
     wrefresh(win);
     delwin(win);
 }
 
+int affichemenu() {
+	// Définition de l'arrière-plan bleu
+    bkgd(COLOR_PAIR(1));
+    clear();
+
+    // Coordonnées de la fenêtre
+    int starty = (LINES - WIN_HEIGHT_CREDIT) / 2;
+    int startx = (COLS - WIN_WIDTH_CREDIT) / 2;
+
+    // Dessiner l'ombre
+    attron(COLOR_PAIR(2));
+    draw_shadow(NULL, starty, startx);
+    attroff(COLOR_PAIR(2));
+
+    // Def de la fenetre
+    WINDOW *win = newwin(WIN_HEIGHT_CREDIT, WIN_WIDTH_CREDIT, starty, startx);
+    wbkgd(win, COLOR_PAIR(3));
+    box(win, ACS_VLINE, ACS_HLINE);
+    
+    refresh();  // Ajout de refresh pour afficher les modifications
+    wrefresh(win);
+    delwin(win);
+    return 0;
+}
 
 int main(int argc, char const *argv[]) {
 	initncurses();
@@ -149,6 +179,7 @@ int main(int argc, char const *argv[]) {
 	printf("%s\n", parkings[0].nom);
 
 	affichecredit(1);
+	//affichemenu();
 	getch();
 	clear();
 	endwin();
