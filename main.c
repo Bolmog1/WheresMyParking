@@ -55,6 +55,22 @@ void load_parking(FILE *fptr, struct parking *parkings, int nb_of_rows) {
 	}
 }
 
+struct parking *lesparkings() {
+	FILE *fptr = load_parking_csv();
+
+	int nb_of_rows = lenght_of_file(fptr) - 1;
+	
+	struct parking *parkings = malloc(sizeof(struct parking) * nb_of_rows);
+
+	if (parkings == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
+	load_parking(fptr, parkings, nb_of_rows);
+	return parkings;
+}
+
 void draw_shadow(WINDOW *win, int starty, int startx) {
     int i;
     for (i = 1; i <= WIN_HEIGHT; i++) {
@@ -126,14 +142,12 @@ void affichecredit(int state) {
 int main(int argc, char const *argv[]) {
 	initncurses();
 	affichecredit(0);
-	FILE *fptr = load_parking_csv();
-	int nb_of_rows = lenght_of_file(fptr) - 1; // supprimer la premiere ligne d'en tete
-	struct parking *parkings = malloc(sizeof(struct parking) * nb_of_rows);
-	if (parkings == NULL) {
-		perror("malloc");
-		exit(1);
-	}
-	load_parking(fptr, parkings, nb_of_rows);
+	
+	struct parking *parkings = lesparkings();
+	
+	printf("test");
+	printf("%s\n", parkings[0].nom);
+
 	affichecredit(1);
 	getch();
 	clear();
