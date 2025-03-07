@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ncurses.h>
 
 #define PARKING_CSV "parking-metropole.csv"
 
@@ -59,15 +60,15 @@ void draw_shadow(WINDOW *win, int starty, int startx) {
     for (i = 1; i <= WIN_HEIGHT; i++) {
         mvprintw(starty + i, startx + WIN_WIDTH, " ");
     }
-    for (i = 0; i <= WIN_WIDTH; i++) {
+    for (i = 1; i <= WIN_WIDTH; i++) {
         mvprintw(starty + WIN_HEIGHT, startx + i, " ");
     }
 }
 
-void display() {
-	initscr();              // Initialiser ncurses
+void initncurses() {
+    initscr();              // Initialiser ncurses
     start_color();          // Activer la gestion des couleurs
-    use_default_colors();   
+    use_default_colors();
     noecho();               // Désactiver l'affichage des entrées utilisateur
     curs_set(0);            // Cacher le curseur
 
@@ -75,7 +76,15 @@ void display() {
     init_pair(1, COLOR_WHITE, COLOR_BLUE);   // Fond bleu
     init_pair(2, COLOR_WHITE, COLOR_BLACK);  // Ombre noire
     init_pair(3, COLOR_BLACK, COLOR_WHITE);  // Fenêtre grise
+    init_pair(4, COLOR_RED, COLOR_WHITE);    // Fenêtre grise
 
+    // Définition de l'arrière-plan bleu
+    bkgd(COLOR_PAIR(1));
+    clear();
+    refresh();  // Ajout de refresh pour afficher les modifications
+}
+
+void affichecredit(int state) {
     // Définition de l'arrière-plan bleu
     bkgd(COLOR_PAIR(1));
     clear();
@@ -93,28 +102,41 @@ void display() {
     WINDOW *win = newwin(WIN_HEIGHT, WIN_WIDTH, starty, startx);
     wbkgd(win, COLOR_PAIR(3));
     box(win, ACS_VLINE, ACS_HLINE);
-    //attron();
-    mvwprintw(win, 2, 3, "Recherche");
-    mvwprintw(win, 0, (WIN_WIDTH - 17) / 2, "Wheres My Parking");
-    refresh();
+    mvwprintw(win, 0, (WIN_WIDTH - 21) / 2, "Wheres My Parking");
+    wattron(win, COLOR_PAIR(4));
+    mvwprintw(win, 2, (WIN_WIDTH - 14) / 2, "Developper par");
+    wattroff(win, COLOR_PAIR(4));
+    wattron(win, A_BOLD);
+    mvwprintw(win, 3, (WIN_WIDTH - 34) / 2, "Eliot MIDAVAINE & Simon DEFONTAINE");
+    wattroff(win, A_BOLD);  // Ajout de attroff pour désactiver le mode gras
+    if (state) {
+    	mvwprintw(win, 5, (WIN_WIDTH - 16) / 2, "Fichier charge !");
+    	wattron(win, A_BLINK);
+		mvwprintw(win, 7, (WIN_WIDTH - 34) / 2, "Appuyez sur entrer pour continuer");
+    	wattroff(win, A_BLINK);
+    } else {
+    	mvwprintw(win, 5, (WIN_WIDTH - 24) / 2, "Chargement du fichier...");
+    }
+    refresh();  // Ajout de refresh pour afficher les modifications
     wrefresh(win);
-
-    getch(); // Attendre une entrée utilisateur avant de quitter
     delwin(win);
-    endwin();
 }
 
+
 int main(int argc, char const *argv[]) {
-	display();
+	initncurses();
+	affichecredit(0);
 	FILE *fptr = load_parking_csv();
 	int nb_of_rows = lenght_of_file(fptr) - 1; // supprimer la premiere ligne d'en tete
-	printf("%d\n", nb_of_rows);
 	struct parking *parkings = malloc(sizeof(struct parking) * nb_of_rows);
 	if (parkings == NULL) {
 		perror("malloc");
 		exit(1);
 	}
 	load_parking(fptr, parkings, nb_of_rows);
-	printf("%s\n", parkings[0].nom);
+	affichecredit(1);
+	getch();
+	clear();
+	endwin();
 	return 0;
 }
