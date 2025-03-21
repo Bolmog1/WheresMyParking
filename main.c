@@ -227,22 +227,25 @@ int afficheparkings() {
     cprint(win_menu, 0, " Tous les parkings ");
 
     int selected = 0;
+    int offset = 0;  // Pour faire défiler la liste si elle est plus grande que la fenêtre
+    int max_visible = WIN_HEIGHT_MENU - 2;  // Nombre maximum d'éléments visibles
     char text_buffer[WIN_WIDTH_MENU];
     int ch;
     keypad(win_menu, TRUE);  // Enable keyboard input for the window
 
     // Menu loop
     while (1) {
-        // Display menu items
-        for (int i = 0; i < NB_PARKINGS; ++i) {
+        // Effacer tout l'affichage d'abord
+        for (int i = 0; i < max_visible; ++i) {
             lprint(win_menu, i + 1, "", 0);
         }
-        for (int i = 0; i < NB_PARKINGS - selected; ++i) {
-            strcpy(text_buffer, parkings[i + selected].nom);
-            strcat(text_buffer, " (");
-            strcat(text_buffer, parkings[i + selected].ville);
-            strcat(text_buffer, ")");
-            lprint(win_menu, i + 1, text_buffer, selected == i + selected);
+        
+        // Afficher les éléments visibles avec offset
+        for (int i = 0; i < max_visible && i + offset < NB_PARKINGS; ++i) {
+            sprintf(text_buffer, "%s (%s)", 
+                    parkings[i + offset].nom, 
+                    parkings[i + offset].ville);
+            lprint(win_menu, i + 1, text_buffer, selected == i);
         }
         
         wrefresh(win_menu);
@@ -251,16 +254,22 @@ int afficheparkings() {
         // Handle keyboard input
         switch(ch) {
             case KEY_UP:
-                if (selected > 0)
+                if (selected > 0) {
                     selected--;
+                } else if (offset > 0) {
+                    offset--;
+                }
                 break;
             case KEY_DOWN:
-                if (selected < NB_MENU - 1)
+                if (selected < max_visible - 1 && selected + offset < NB_PARKINGS - 1) {
                     selected++;
+                } else if (offset + max_visible < NB_PARKINGS) {
+                    offset++;
+                }
                 break;
             case 10:  // Enter key
                 delwin(win_menu);
-                return selected;
+                return selected + offset;
             case 'q':  // Quit
                 delwin(win_menu);
                 return -1;
