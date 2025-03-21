@@ -8,7 +8,11 @@
 #define WIN_WIDTH_CREDIT 40
 #define WIN_HEIGHT_CREDIT 10
 #define WIN_WIDTH_MENU 60
-#define WIN_HEIGHT_MENU 30
+#define WIN_HEIGHT_MENU 15
+#define NB_ELEMENT_MENU 10
+
+char *MENU[] = {"Afficher tous les parkings", "Afficher un parking", "Entrer dans un parking", "Mode Administrateur", "Quitter (Q)"};
+#define NB_MENU 5
 
 struct parking {
 	char id[8];
@@ -21,6 +25,9 @@ struct parking {
 	char date_maj[26];
 	char affichage[10];
 };
+
+struct parking *parkings;
+int NB_PARKINGS;
 
 FILE *load_parking_csv() {
 	return fopen(PARKING_CSV, "r");
@@ -61,6 +68,7 @@ struct parking *lesparkings() {
 	FILE *fptr = load_parking_csv();
 
 	int nb_of_rows = lenght_of_file(fptr) - 1;
+    NB_PARKINGS = nb_of_rows;
 	
 	struct parking *parkings = malloc(sizeof(struct parking) * nb_of_rows);
 
@@ -73,13 +81,13 @@ struct parking *lesparkings() {
 	return parkings;
 }
 
-void draw_shadow(WINDOW *win, int starty, int startx) {
+void draw_shadow(int starty, int startx, int width, int height) {
     int i;
-    for (i = 1; i <= WIN_HEIGHT_CREDIT; i++) {
-        mvprintw(starty + i, startx + WIN_WIDTH_CREDIT, " ");
+    for (i = 1; i <= height; i++) {
+        mvprintw(starty + i, startx + width, " ");
     }
-    for (i = 1; i <= WIN_WIDTH_CREDIT; i++) {
-        mvprintw(starty + WIN_HEIGHT_CREDIT, startx + i, " ");
+    for (i = 1; i <= width; i++) {
+        mvprintw(starty + height, startx + i, " ");
     }
 }
 
@@ -117,14 +125,14 @@ void affichecredit(int state) {
 
     // Dessiner l'ombre
     attron(COLOR_PAIR(2));
-    draw_shadow(NULL, starty, startx);
+    draw_shadow(starty, startx, WIN_WIDTH_CREDIT, WIN_HEIGHT_CREDIT);
     attroff(COLOR_PAIR(2));
 
     // Créer la fenêtre principale (grise)
     WINDOW *win = newwin(WIN_HEIGHT_CREDIT, WIN_WIDTH_CREDIT, starty, startx);
     wbkgd(win, COLOR_PAIR(3));
     box(win, ACS_VLINE, ACS_HLINE);
-    cprint(win, 0, "Wheres My Parking");
+    cprint(win, 0, " Wheres My Parking ");
     wattron(win, COLOR_PAIR(4));
     cprint(win, 2, "Developper par");
     wattroff(win, COLOR_PAIR(4));
@@ -144,43 +152,152 @@ void affichecredit(int state) {
     delwin(win);
 }
 
+void lprint(WINDOW *win, int line, char *text, int selected) {
+    wattron(win, COLOR_PAIR(selected ? 1 : 3));  // Use window attributes with wattron
+    // Clear the line with the right color
+    for (int i = 2; i < getmaxx(win) - 2; ++i) {
+        mvwprintw(win, line, i, " ");
+    }
+
+    mvwprintw(win, line, 3, "%s", text);
+    wattroff(win, COLOR_PAIR(selected ? 1 : 3));
+}
+
 int affichemenu() {
-	// Définition de l'arrière-plan bleu
+    // Définition de l'arrière-plan bleu
     bkgd(COLOR_PAIR(1));
     clear();
 
     // Coordonnées de la fenêtre
-    int starty = (LINES - WIN_HEIGHT_CREDIT) / 2;
-    int startx = (COLS - WIN_WIDTH_CREDIT) / 2;
-
-    // Dessiner l'ombre
-    attron(COLOR_PAIR(2));
-    draw_shadow(NULL, starty, startx);
-    attroff(COLOR_PAIR(2));
+    int starty = (LINES - WIN_HEIGHT_MENU) / 2;
+    int startx = (COLS - WIN_WIDTH_MENU) / 2;
 
     // Def de la fenetre
-    WINDOW *win = newwin(WIN_HEIGHT_CREDIT, WIN_WIDTH_CREDIT, starty, startx);
-    wbkgd(win, COLOR_PAIR(3));
-    box(win, ACS_VLINE, ACS_HLINE);
-    
-    refresh();  // Ajout de refresh pour afficher les modifications
-    wrefresh(win);
-    delwin(win);
-    return 0;
+    WINDOW *win_menu = newwin(WIN_HEIGHT_MENU, WIN_WIDTH_MENU, starty, startx);
+    wbkgd(win_menu, COLOR_PAIR(3));
+    box(win_menu, ACS_VLINE, ACS_HLINE);
+    cprint(win_menu, 0, " Menu ");
+
+    int selected = 0;
+    int ch;
+    keypad(win_menu, TRUE);  // Enable keyboard input for the window
+
+    // Menu loop
+    while (1) {
+        for (int i = 0; i < NB_MENU; ++i) {
+            lprint(win_menu, i + 1, MENU[i], selected == i);
+        }
+        
+        wrefresh(win_menu);
+        ch = wgetch(win_menu);
+        
+        // Handle keyboard input
+        switch(ch) {
+            case KEY_UP:
+                if (selected > 0)
+                    selected--;
+                break;
+            case KEY_DOWN:
+                if (selected < NB_MENU - 1)
+                    selected++;
+                break;
+            case 10:  // Enter key
+                delwin(win_menu);
+                return selected;
+            case 'q':  // Quit
+                delwin(win_menu);
+                return -1;
+        }
+    }
+}
+
+int afficheparkings() {
+    // Définition de l'arrière-plan bleu
+    bkgd(COLOR_PAIR(1));
+    clear();
+
+    // Coordonnées de la fenêtre
+    int starty = (LINES - WIN_HEIGHT_MENU) / 2;
+    int startx = (COLS - WIN_WIDTH_MENU) / 2;
+
+    // Def de la fenetre
+    WINDOW *win_menu = newwin(WIN_HEIGHT_MENU, WIN_WIDTH_MENU, starty, startx);
+    wbkgd(win_menu, COLOR_PAIR(3));
+    box(win_menu, ACS_VLINE, ACS_HLINE);
+    cprint(win_menu, 0, " Tous les parkings ");
+
+    int selected = 0;
+    char text_buffer[WIN_WIDTH_MENU];
+    int ch;
+    keypad(win_menu, TRUE);  // Enable keyboard input for the window
+
+    // Menu loop
+    while (1) {
+        // Display menu items
+        for (int i = 0; i < NB_PARKINGS; ++i) {
+            lprint(win_menu, i + 1, "", 0);
+        }
+        for (int i = 0; i < NB_PARKINGS - selected; ++i) {
+            strcpy(text_buffer, parkings[i + selected].nom);
+            strcat(text_buffer, " (");
+            strcat(text_buffer, parkings[i + selected].ville);
+            strcat(text_buffer, ")");
+            lprint(win_menu, i + 1, text_buffer, selected == i + selected);
+        }
+        
+        wrefresh(win_menu);
+        ch = wgetch(win_menu);
+        
+        // Handle keyboard input
+        switch(ch) {
+            case KEY_UP:
+                if (selected > 0)
+                    selected--;
+                break;
+            case KEY_DOWN:
+                if (selected < NB_MENU - 1)
+                    selected++;
+                break;
+            case 10:  // Enter key
+                delwin(win_menu);
+                return selected;
+            case 'q':  // Quit
+                delwin(win_menu);
+                return -1;
+        }
+    }
 }
 
 int main(int argc, char const *argv[]) {
 	initncurses();
 	affichecredit(0);
 	
-	struct parking *parkings = lesparkings();
-	
-	printf("test");
-	printf("%s\n", parkings[0].nom);
+	parkings = lesparkings();
 
 	affichecredit(1);
-	//affichemenu();
 	getch();
+	int user_input;
+	while (1) {
+		user_input = affichemenu();
+        switch (user_input) {
+            case -1:
+            case 4:
+                return 0;
+            case 0:
+                afficheparkings();
+                break;
+            case 1:
+                // Afficher un parking
+                break;
+            case 2:
+                // Entrer dans un parking
+                break;
+            case 3:
+                // Mode admin
+                break;
+        }
+	}
+	
 	clear();
 	endwin();
 	return 0;
