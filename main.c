@@ -211,6 +211,44 @@ int affichemenu() {
     }
 }
 
+void afficheparking(int selected) {
+    bkgd(COLOR_PAIR(1));
+    clear();
+
+    struct parking choose_one = parkings[selected];
+    // Coordonnées de la fenêtre
+    int starty = (LINES - WIN_HEIGHT_MENU) / 2;
+    int startx = (COLS - WIN_WIDTH_MENU) / 2;
+
+    // Def de la fenetre
+    WINDOW *win_menu = newwin(WIN_HEIGHT_MENU, WIN_WIDTH_MENU, starty, startx);
+    wbkgd(win_menu, COLOR_PAIR(3));
+    box(win_menu, ACS_VLINE, ACS_HLINE);
+    cprint(win_menu, 0, choose_one.nom);
+
+    char buffer[80];
+
+    sprintf(buffer, "ID : \t%s", choose_one.id);
+    mvwprintw(win_menu, 1, 3, buffer);
+    sprintf(buffer, "Nom : \t%s", choose_one.nom);
+    mvwprintw(win_menu, 2, 3, buffer);
+    sprintf(buffer, "Adresse : \t%s", choose_one.adresse);
+    mvwprintw(win_menu, 3, 3, buffer);
+    sprintf(buffer, "Ville : \t%s", choose_one.ville);
+    mvwprintw(win_menu, 4, 3, buffer);
+    sprintf(buffer, "Etat : \t%s", choose_one.etat);
+    mvwprintw(win_menu, 5, 3, buffer);
+    sprintf(buffer, "Place Disponible : \t%d / %d", choose_one.place_dispo, choose_one.capacite_max);
+    mvwprintw(win_menu, 6, 3, buffer);
+    sprintf(buffer, "Date derniere MàJ :  %s", choose_one.date_maj);
+    mvwprintw(win_menu, 7, 3, buffer);
+
+    wrefresh(win_menu);
+    wgetch(win_menu);
+
+    cprint(win_menu, 2, choose_one.nom);
+}
+
 int afficheparkings() {
     // Définition de l'arrière-plan bleu
     bkgd(COLOR_PAIR(1));
@@ -229,7 +267,7 @@ int afficheparkings() {
     int selected = 0;
     int offset = 0;  // Pour faire défiler la liste si elle est plus grande que la fenêtre
     int max_visible = WIN_HEIGHT_MENU - 2;  // Nombre maximum d'éléments visibles
-    char text_buffer[WIN_WIDTH_MENU];
+    char text_buffer[80];
     int ch;
     keypad(win_menu, TRUE);  // Enable keyboard input for the window
 
@@ -269,11 +307,53 @@ int afficheparkings() {
                 break;
             case 10:  // Enter key
                 delwin(win_menu);
+                afficheparking(selected + offset);
                 return selected + offset;
             case 'q':  // Quit
                 delwin(win_menu);
                 return -1;
         }
+    }
+}
+
+void choixparking() {
+    // Définition de l'arrière-plan bleu
+    bkgd(COLOR_PAIR(1));
+    clear();
+    refresh();
+
+    // Coordonnées de la fenêtre
+    int starty = (LINES - WIN_HEIGHT_MENU) / 2;
+    int startx = (COLS - WIN_WIDTH_MENU) / 2;
+
+    // Def de la fenetre
+    WINDOW *win_menu = newwin(3, WIN_WIDTH_MENU, starty, startx);
+    wbkgd(win_menu, COLOR_PAIR(3));
+    box(win_menu, ACS_VLINE, ACS_HLINE);
+    cprint(win_menu, 0, " Entrer un ID de parking ");
+
+    keypad(win_menu, TRUE);  // Enable keyboard input for the window
+
+    wattron(win_menu, COLOR_PAIR(2));
+    for (int i = 2; i < getmaxx(win_menu) - 2; ++i) {
+        mvwprintw(win_menu, 1, i, " ");
+    }
+
+    wrefresh(win_menu);
+    char buffer[8];
+    echo();
+    curs_set(1);
+    mvwscanw(win_menu,1,2,"%s", buffer);
+    noecho();
+    curs_set(0);
+    wattroff(win_menu, COLOR_PAIR(2));
+    mvwprintw(win_menu, 0, 0, buffer);
+    wrefresh(win_menu);
+    for (int i = 0; i < NB_PARKINGS; i++) {
+      if (!strcmp(parkings[i].id, buffer)) {
+          afficheparking(i);
+          break;
+      }
     }
 }
 
@@ -291,12 +371,14 @@ int main(int argc, char const *argv[]) {
         switch (user_input) {
             case -1:
             case 4:
+                clear();
+                endwin();
                 return 0;
             case 0:
                 afficheparkings();
                 break;
             case 1:
-                // Afficher un parking
+                choixparking();
                 break;
             case 2:
                 // Entrer dans un parking
