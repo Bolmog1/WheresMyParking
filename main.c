@@ -3,9 +3,11 @@
 #include <string.h>
 #include <ncurses.h>
 
-#define PARKING_CSV "parking-metropole.csv"
+#include "toolbox.h"
 
-#define PWD "FUck"
+#define PARKING_CSV "test.csv"
+
+#define PWD "1234"
 
 #define WIN_WIDTH_CREDIT 40
 #define WIN_HEIGHT_CREDIT 10
@@ -83,6 +85,20 @@ struct parking *lesparkings() {
 	return parkings;
 }
 
+void sauvegarderEtatParking() {
+    FILE *fptr;
+    fptr = fopen(PARKING_CSV, "w");
+    struct parking choose_one;
+    char parking_buffer[255];
+    fprintf(fptr, "Identifiant;Nom;Adresse;Ville;État;Places disponibles;Capacité max;Date de mise à jour;Affichage panneaux\n");
+    for (int i = 0; i < NB_PARKINGS; ++i) {
+        choose_one = parkings[i];
+        sprintf(parking_buffer, "%s;%s;%s;%s;%s;%d;%d;%s;%s", choose_one.id, choose_one.nom, choose_one.adresse, choose_one.ville, choose_one.etat, choose_one.place_dispo, choose_one.capacite_max, choose_one.date_maj, choose_one.affichage);
+        fprintf(fptr, "%s",parking_buffer);
+    }
+    fclose(fptr);
+}
+
 void draw_shadow(int starty, int startx, int width, int height) {
     int i;
     attron(COLOR_PAIR(2));
@@ -94,29 +110,6 @@ void draw_shadow(int starty, int startx, int width, int height) {
     }
     attroff(COLOR_PAIR(2));
     refresh();
-}
-
-void initncurses() {
-    initscr();              // Initialiser ncurses
-    start_color();          // Activer la gestion des couleurs
-    use_default_colors();
-    noecho();               // Désactiver l'affichage des entrées utilisateur
-    curs_set(0);            // Cacher le curseur
-
-    // Définition des couleurs
-    init_pair(1, COLOR_WHITE, COLOR_BLUE);   // Fond bleu
-    init_pair(2, COLOR_WHITE, COLOR_BLACK);  // Ombre noire
-    init_pair(3, COLOR_BLACK, COLOR_WHITE);  // Fenêtre grise
-    init_pair(4, COLOR_RED, COLOR_WHITE);    // Fenêtre grise
-
-    // Définition de l'arrière-plan bleu
-    bkgd(COLOR_PAIR(1));
-    clear();
-    refresh();  // Ajout de refresh pour afficher les modifications
-}
-
-void cprint(WINDOW *win, int line, char text[]) {
-	mvwprintw(win, line, (getmaxx(win) - strlen(text)) / 2, text);
 }
 
 void affichecredit(int state) {
@@ -153,17 +146,6 @@ void affichecredit(int state) {
     refresh();  // Ajout de refresh pour afficher les modifications
     wrefresh(win);
     delwin(win);
-}
-
-void lprint(WINDOW *win, int line, char *text, int selected) {
-    wattron(win, COLOR_PAIR(selected ? 1 : 3));  // Use window attributes with wattron
-    // Clear the line with the right color
-    for (int i = 2; i < getmaxx(win) - 2; ++i) {
-        mvwprintw(win, line, i, " ");
-    }
-
-    mvwprintw(win, line, 3, "%s", text);
-    wattroff(win, COLOR_PAIR(selected ? 1 : 3));
 }
 
 int affichemenu() {
@@ -327,13 +309,6 @@ void afficheparking(int selected) {
     cprint(win_menu, 2, choose_one.nom);
 }
 
-void scanfGB(WINDOW *win_menu, int y, int x) {
-    wattron(win_menu, COLOR_PAIR(2));
-    for (int i = x; i < getmaxx(win_menu) - x; ++i) {
-        mvwprintw(win_menu, y, i, " ");
-    }
-}
-
 void choixparking() {
     // Définition de l'arrière-plan bleu
     bkgd(COLOR_PAIR(1));
@@ -447,6 +422,8 @@ int modeAdministrateur() {
         }
 
         // %8[^\n] à la place de %s pour accepter les espaces
+        echo();
+        curs_set(1);
         mvwscanw(win_menu,2,3,"%8[^\n]", choose_one.id);
         if (choose_one.id[0] != '\0') {strcpy(parkings[selected].id, choose_one.id);}
         
@@ -492,7 +469,7 @@ int main(int argc, char const *argv[]) {
                 choixparking();
                 break;
             case 2:
-                // Entrer dans un parking
+                sauvegarderEtatParking();
                 break;
             case 3:
                 modeAdministrateur();
