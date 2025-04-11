@@ -5,10 +5,12 @@
 
 #define PARKING_CSV "parking-metropole.csv"
 
+#define PWD "FUck"
+
 #define WIN_WIDTH_CREDIT 40
 #define WIN_HEIGHT_CREDIT 10
-#define WIN_WIDTH_MENU 60
-#define WIN_HEIGHT_MENU 15
+#define WIN_WIDTH_MENU 80
+#define WIN_HEIGHT_MENU 25
 #define NB_ELEMENT_MENU 10
 
 char *MENU[] = {"Afficher tous les parkings", "Afficher un parking", "Entrer dans un parking", "Mode Administrateur", "Quitter (Q)"};
@@ -83,12 +85,15 @@ struct parking *lesparkings() {
 
 void draw_shadow(int starty, int startx, int width, int height) {
     int i;
+    attron(COLOR_PAIR(2));
     for (i = 1; i <= height; i++) {
         mvprintw(starty + i, startx + width, " ");
     }
     for (i = 1; i <= width; i++) {
         mvprintw(starty + height, startx + i, " ");
     }
+    attroff(COLOR_PAIR(2));
+    refresh();
 }
 
 void initncurses() {
@@ -124,9 +129,7 @@ void affichecredit(int state) {
     int startx = (COLS - WIN_WIDTH_CREDIT) / 2;
 
     // Dessiner l'ombre
-    attron(COLOR_PAIR(2));
     draw_shadow(starty, startx, WIN_WIDTH_CREDIT, WIN_HEIGHT_CREDIT);
-    attroff(COLOR_PAIR(2));
 
     // Créer la fenêtre principale (grise)
     WINDOW *win = newwin(WIN_HEIGHT_CREDIT, WIN_WIDTH_CREDIT, starty, startx);
@@ -171,12 +174,15 @@ int affichemenu() {
     // Coordonnées de la fenêtre
     int starty = (LINES - WIN_HEIGHT_MENU) / 2;
     int startx = (COLS - WIN_WIDTH_MENU) / 2;
-
+    int win_height_menu = NB_MENU + 2;
     // Def de la fenetre
-    WINDOW *win_menu = newwin(WIN_HEIGHT_MENU, WIN_WIDTH_MENU, starty, startx);
+    WINDOW *win_menu = newwin(win_height_menu, WIN_WIDTH_MENU, starty, startx);
     wbkgd(win_menu, COLOR_PAIR(3));
     box(win_menu, ACS_VLINE, ACS_HLINE);
     cprint(win_menu, 0, " Menu ");
+    cprint(win_menu, win_height_menu - 1, " (Q) Quitter | (^v) Déplacer | (Enter) Choissir ");
+    draw_shadow(starty, startx, WIN_WIDTH_MENU, win_height_menu);
+
 
     int selected = 0;
     int ch;
@@ -211,44 +217,6 @@ int affichemenu() {
     }
 }
 
-void afficheparking(int selected) {
-    bkgd(COLOR_PAIR(1));
-    clear();
-
-    struct parking choose_one = parkings[selected];
-    // Coordonnées de la fenêtre
-    int starty = (LINES - WIN_HEIGHT_MENU) / 2;
-    int startx = (COLS - WIN_WIDTH_MENU) / 2;
-
-    // Def de la fenetre
-    WINDOW *win_menu = newwin(WIN_HEIGHT_MENU, WIN_WIDTH_MENU, starty, startx);
-    wbkgd(win_menu, COLOR_PAIR(3));
-    box(win_menu, ACS_VLINE, ACS_HLINE);
-    cprint(win_menu, 0, choose_one.nom);
-
-    char buffer[80];
-
-    sprintf(buffer, "ID : \t%s", choose_one.id);
-    mvwprintw(win_menu, 1, 3, buffer);
-    sprintf(buffer, "Nom : \t%s", choose_one.nom);
-    mvwprintw(win_menu, 2, 3, buffer);
-    sprintf(buffer, "Adresse : \t%s", choose_one.adresse);
-    mvwprintw(win_menu, 3, 3, buffer);
-    sprintf(buffer, "Ville : \t%s", choose_one.ville);
-    mvwprintw(win_menu, 4, 3, buffer);
-    sprintf(buffer, "Etat : \t%s", choose_one.etat);
-    mvwprintw(win_menu, 5, 3, buffer);
-    sprintf(buffer, "Place Disponible : \t%d / %d", choose_one.place_dispo, choose_one.capacite_max);
-    mvwprintw(win_menu, 6, 3, buffer);
-    sprintf(buffer, "Date derniere MàJ :  %s", choose_one.date_maj);
-    mvwprintw(win_menu, 7, 3, buffer);
-
-    wrefresh(win_menu);
-    wgetch(win_menu);
-
-    cprint(win_menu, 2, choose_one.nom);
-}
-
 int afficheparkings() {
     // Définition de l'arrière-plan bleu
     bkgd(COLOR_PAIR(1));
@@ -263,6 +231,8 @@ int afficheparkings() {
     wbkgd(win_menu, COLOR_PAIR(3));
     box(win_menu, ACS_VLINE, ACS_HLINE);
     cprint(win_menu, 0, " Tous les parkings ");
+    cprint(win_menu, WIN_HEIGHT_MENU - 1, " (Q) Quitter | (^v) Déplacer | (Enter) Choissir ");
+    draw_shadow(starty, startx, WIN_WIDTH_MENU, WIN_HEIGHT_MENU);
 
     int selected = 0;
     int offset = 0;  // Pour faire défiler la liste si elle est plus grande que la fenêtre
@@ -307,12 +277,60 @@ int afficheparkings() {
                 break;
             case 10:  // Enter key
                 delwin(win_menu);
-                afficheparking(selected + offset);
                 return selected + offset;
             case 'q':  // Quit
                 delwin(win_menu);
                 return -1;
         }
+    }
+}
+
+void afficheparking(int selected) {
+    selected = selected >= 0 ? selected : afficheparkings();
+    if (selected < 0) {return;}
+
+    bkgd(COLOR_PAIR(1));
+    clear();
+
+    struct parking choose_one = parkings[selected];
+    // Coordonnées de la fenêtre
+    int starty = (LINES - WIN_HEIGHT_MENU) / 2;
+    int startx = (COLS - WIN_WIDTH_MENU) / 2;
+
+    // Def de la fenetre
+    WINDOW *win_menu = newwin(WIN_HEIGHT_MENU, WIN_WIDTH_MENU, starty, startx);
+    wbkgd(win_menu, COLOR_PAIR(3));
+    box(win_menu, ACS_VLINE, ACS_HLINE);
+    cprint(win_menu, 0, choose_one.nom);
+    draw_shadow(starty, startx, WIN_WIDTH_MENU, WIN_HEIGHT_MENU);
+
+    char buffer[80];
+
+    sprintf(buffer, "ID : \t%s", choose_one.id);
+    mvwprintw(win_menu, 1, 3, buffer);
+    sprintf(buffer, "Nom : \t%s", choose_one.nom);
+    mvwprintw(win_menu, 2, 3, buffer);
+    sprintf(buffer, "Adresse : \t%s", choose_one.adresse);
+    mvwprintw(win_menu, 3, 3, buffer);
+    sprintf(buffer, "Ville : \t%s", choose_one.ville);
+    mvwprintw(win_menu, 4, 3, buffer);
+    sprintf(buffer, "Etat : \t%s", choose_one.etat);
+    mvwprintw(win_menu, 5, 3, buffer);
+    sprintf(buffer, "Place Disponible : \t%d / %d", choose_one.place_dispo, choose_one.capacite_max);
+    mvwprintw(win_menu, 6, 3, buffer);
+    sprintf(buffer, "Date derniere MàJ :  %s", choose_one.date_maj);
+    mvwprintw(win_menu, 7, 3, buffer);
+
+    wrefresh(win_menu);
+    wgetch(win_menu);
+
+    cprint(win_menu, 2, choose_one.nom);
+}
+
+void scanfGB(WINDOW *win_menu, int y, int x) {
+    wattron(win_menu, COLOR_PAIR(2));
+    for (int i = x; i < getmaxx(win_menu) - x; ++i) {
+        mvwprintw(win_menu, y, i, " ");
     }
 }
 
@@ -331,13 +349,11 @@ void choixparking() {
     wbkgd(win_menu, COLOR_PAIR(3));
     box(win_menu, ACS_VLINE, ACS_HLINE);
     cprint(win_menu, 0, " Entrer un ID de parking ");
+    draw_shadow(starty, startx, WIN_WIDTH_MENU, 3);
 
     keypad(win_menu, TRUE);  // Enable keyboard input for the window
 
-    wattron(win_menu, COLOR_PAIR(2));
-    for (int i = 2; i < getmaxx(win_menu) - 2; ++i) {
-        mvwprintw(win_menu, 1, i, " ");
-    }
+    scanfGB(win_menu, 1, 2);
 
     wrefresh(win_menu);
     char buffer[8];
@@ -355,6 +371,101 @@ void choixparking() {
           break;
       }
     }
+}
+
+int modeAdministrateur() {
+    // Définition de l'arrière-plan bleu
+    bkgd(COLOR_PAIR(1));
+    clear();
+    refresh();
+
+    // Coordonnées de la fenêtre
+    int starty = (LINES - WIN_HEIGHT_MENU) / 2;
+    int startx = (COLS - WIN_WIDTH_MENU) / 2;
+
+    // Def de la fenetre
+    WINDOW *win_menu = newwin(3, WIN_WIDTH_MENU, starty, startx);
+    wbkgd(win_menu, COLOR_PAIR(3));
+    box(win_menu, ACS_VLINE, ACS_HLINE);
+    cprint(win_menu, 0, " Entrer le mdp admin ");
+    draw_shadow(starty, startx, WIN_WIDTH_MENU, 3);
+
+    keypad(win_menu, TRUE);  // Enable keyboard input for the window
+
+    scanfGB(win_menu, 1, 2);
+    echo();
+    curs_set(1);
+    char buffer_pwd[20];
+
+    wrefresh(win_menu);
+
+    mvwscanw(win_menu,1,2,"%20s", buffer_pwd);
+    curs_set(0);
+    noecho();
+    if (strcmp(buffer_pwd, PWD)) {
+        printf("\a"); 
+        return 0;
+    }
+
+    int selected;
+    char buffer[80];
+    while (1) {
+        selected = afficheparkings();
+        if (selected == -1) {return 1;}
+
+        bkgd(COLOR_PAIR(1));
+        clear();
+
+        struct parking choose_one = parkings[selected];
+        // Coordonnées de la fenêtre
+        starty = (LINES - WIN_HEIGHT_MENU) / 2;
+        startx = (COLS - WIN_WIDTH_MENU) / 2;
+
+        // Def de la fenetre
+        win_menu = newwin(WIN_HEIGHT_MENU, WIN_WIDTH_MENU, starty, startx);
+        wbkgd(win_menu, COLOR_PAIR(3));
+        box(win_menu, ACS_VLINE, ACS_HLINE);
+        cprint(win_menu, 0, choose_one.nom);
+        draw_shadow(starty, startx, WIN_WIDTH_MENU, WIN_HEIGHT_MENU);
+
+        sprintf(buffer, "ID : \t%s", choose_one.id);
+        mvwprintw(win_menu, 1, 3, buffer);
+        sprintf(buffer, "Nom : \t%s", choose_one.nom);
+        mvwprintw(win_menu, 3, 3, buffer);
+        sprintf(buffer, "Adresse : \t%s", choose_one.adresse);
+        mvwprintw(win_menu, 5, 3, buffer);
+        sprintf(buffer, "Ville : \t%s", choose_one.ville);
+        mvwprintw(win_menu, 7, 3, buffer);
+        sprintf(buffer, "Etat : \t%s", choose_one.etat);
+        mvwprintw(win_menu, 9, 3, buffer);
+
+        wrefresh(win_menu);
+
+        wattron(win_menu, COLOR_PAIR(3));
+        for (int i = 2; i < 12; i+=2) {
+            scanfGB(win_menu, i, 3);
+        }
+
+        // %8[^\n] à la place de %s pour accepter les espaces
+        mvwscanw(win_menu,2,3,"%8[^\n]", choose_one.id);
+        if (choose_one.id[0] != '\0') {strcpy(parkings[selected].id, choose_one.id);}
+        
+        mvwscanw(win_menu,4,3,"%50[^\n]", choose_one.nom);
+        if (choose_one.nom[0] != '\0') {strcpy(parkings[selected].nom, choose_one.nom);}
+
+        mvwscanw(win_menu,6,3,"%50[^\n]", choose_one.adresse);
+        if (choose_one.adresse[0] != '\0') {strcpy(parkings[selected].adresse, choose_one.adresse);}
+
+        mvwscanw(win_menu,8,3,"%25[^\n]", choose_one.ville);
+        if (choose_one.ville[0] != '\0') {strcpy(parkings[selected].ville, choose_one.ville);}
+
+        mvwscanw(win_menu,10,3,"%10[^\n]", choose_one.etat);
+        if (choose_one.etat[0] != '\0') {strcpy(parkings[selected].etat, choose_one.etat);}
+        
+        noecho();
+        curs_set(0);
+    }
+    return 1;
 }
 
 int main(int argc, char const *argv[]) {
@@ -375,7 +486,7 @@ int main(int argc, char const *argv[]) {
                 endwin();
                 return 0;
             case 0:
-                afficheparkings();
+                afficheparking(-1);
                 break;
             case 1:
                 choixparking();
@@ -384,7 +495,7 @@ int main(int argc, char const *argv[]) {
                 // Entrer dans un parking
                 break;
             case 3:
-                // Mode admin
+                modeAdministrateur();
                 break;
         }
 	}
