@@ -18,6 +18,7 @@ void initncurses() {
     init_pair(2, COLOR_WHITE, COLOR_BLACK);  // Ombre noire (BG)
     init_pair(3, COLOR_BLACK, COLOR_WHITE);  // Fenetre Blanche (FG)
     init_pair(4, COLOR_RED, COLOR_WHITE);    // Texte rouge (FG)
+    init_pair(5, COLOR_RED, COLOR_RED);      // Fond rouge (BG)
 
     // Définition de l'arrière-plan bleu
     bkgd(COLOR_PAIR(1));

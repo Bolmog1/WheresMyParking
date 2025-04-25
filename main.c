@@ -2,12 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
+#include <time.h>
 
 #include "toolbox.h"
 
 #define PARKING_CSV "test.csv"
+#define RECU_CSV "recu.txt"
 
 #define PWD "1234"
+
+#define PRIX 4
 
 #define WIN_WIDTH_CREDIT 40
 #define WIN_HEIGHT_CREDIT 10
@@ -350,7 +354,7 @@ void choixparking() {
 
 int modeAdministrateur() {
     // Définition de l'arrière-plan bleu
-    bkgd(COLOR_PAIR(1));
+    bkgd(COLOR_PAIR(5));
     clear();
     refresh();
 
@@ -388,7 +392,7 @@ int modeAdministrateur() {
         selected = afficheparkings();
         if (selected == -1) {return 1;}
 
-        bkgd(COLOR_PAIR(1));
+        bkgd(COLOR_PAIR(5));
         clear();
 
         struct parking choose_one = parkings[selected];
@@ -441,8 +445,92 @@ int modeAdministrateur() {
         
         noecho();
         curs_set(0);
+
+        sauvegarderEtatParking();
     }
     return 1;
+}
+
+void sortieParking() {
+    // Définition de l'arrière-plan bleu
+    bkgd(COLOR_PAIR(1));
+    clear();
+    refresh();
+
+    // Coordonnées de la fenêtre
+    int starty = (LINES - WIN_HEIGHT_MENU) / 2;
+    int startx = (COLS - WIN_WIDTH_MENU) / 2;
+
+    // Def de la fenetre
+    WINDOW *win_menu = newwin(12, WIN_WIDTH_MENU, starty, startx);
+    wbkgd(win_menu, COLOR_PAIR(3));
+    box(win_menu, ACS_VLINE, ACS_HLINE);
+    cprint(win_menu, 0, " Entrer vos informations ");
+    mvwprintw(win_menu, 2, 3, "Plaque d'immatrication :");
+    mvwprintw(win_menu, 5, 3, "Nombre d'heure dans le parking :");
+    mvwprintw(win_menu, 8, 3, "Identifiant du parking :");
+    draw_shadow(starty, startx, WIN_WIDTH_MENU, 12);
+
+    keypad(win_menu, TRUE);  // Enable keyboard input for the window
+
+    scanfGB(win_menu, 3, 2);
+    scanfGB(win_menu, 6, 2);
+    scanfGB(win_menu, 9, 2);
+
+    wrefresh(win_menu);
+    char plaque[8];
+    int nbheures;
+    char parkingID[8];
+    echo();
+    curs_set(1);
+    mvwscanw(win_menu,3,2,"%8s", plaque);
+    mvwscanw(win_menu,6,2,"%d", &nbheures);
+    mvwscanw(win_menu,9,2,"%8s", parkingID);
+    noecho();
+    curs_set(0);
+    wattroff(win_menu, COLOR_PAIR(2));
+    wrefresh(win_menu);
+    
+    // Définition de l'arrière-plan bleu
+    bkgd(COLOR_PAIR(1));
+    clear();
+    refresh();
+
+    // Def de la fenetre
+    win_menu = newwin(WIN_HEIGHT_MENU, WIN_WIDTH_MENU, starty, startx);
+    wbkgd(win_menu, COLOR_PAIR(3));
+    box(win_menu, ACS_VLINE, ACS_HLINE);
+    cprint(win_menu, 0, " Recu ");
+    mvwprintw(win_menu, 2, 3, "Ticket de parking");
+    mvwprintw(win_menu, 4, 6, "Immatriculation : %s", plaque);
+    mvwprintw(win_menu, 6, 6, "Parking : %s", parkingID);
+    mvwprintw(win_menu, 8, 6, "Nombre d'heure : %dh", nbheures);
+    mvwprintw(win_menu, 10, 6, "Total : %de (%dh x %de)", PRIX * nbheures, nbheures, PRIX);
+    draw_shadow(starty, startx, WIN_WIDTH_MENU, WIN_HEIGHT_MENU);
+
+    wrefresh(win_menu);
+
+    FILE *recu = fopen(RECU_CSV, "a");
+    if (recu != NULL)
+    {
+        // Obtenir la date et l'heure actuelles
+        time_t now = time(NULL);
+        struct tm *tm_info = localtime(&now);
+        char date_time[20];
+        strftime(date_time, 20, "%Y-%m-%d %H:%M", tm_info);
+        
+        // Écrire les informations sur une ligne au format CSV
+        fprintf(recu, "%s,%s,%s,%d,%d\n", date_time, plaque, parkingID, nbheures, PRIX * nbheures);
+        fclose(recu);
+    }
+    else
+    {
+        // En cas d'erreur d'ouverture du fichier
+        mvwprintw(win_menu, 12, 3, "Erreur: Impossible d'enregistrer le reçu");
+        wrefresh(win_menu);
+    }
+
+    wgetch(win_menu);
 }
 
 int main(int argc, char const *argv[]) {
@@ -469,7 +557,7 @@ int main(int argc, char const *argv[]) {
                 choixparking();
                 break;
             case 2:
-                sauvegarderEtatParking();
+                sortieParking();
                 break;
             case 3:
                 modeAdministrateur();
