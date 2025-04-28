@@ -166,7 +166,7 @@ int affichemenu() {
     wbkgd(win_menu, COLOR_PAIR(3));
     box(win_menu, ACS_VLINE, ACS_HLINE);
     cprint(win_menu, 0, " Menu ");
-    cprint(win_menu, win_height_menu - 1, " (Q) Quitter | (^v) Déplacer | (Enter) Choissir ");
+    cprint(win_menu, win_height_menu - 1, " (Q) Quitter | (^v) Déplacer | (Enter) Choissir  ");
     draw_shadow(starty, startx, WIN_WIDTH_MENU, win_height_menu);
 
 
